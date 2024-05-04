@@ -1,4 +1,13 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Text Splitter App
+
+The Text Splitter App is a simple web application built using Next.js, Tailwind CSS, and TypeScript. It allows users to input large text blocks and automatically splits them into smaller chunks for easier handling. Each chunk is limited to 4000 characters, making it convenient for users who need to work with lengthy text data.
+
+## Features
+
+- Text Input: Users can paste or type text into the input field.
+- Automatic Splitting: The application automatically splits the input text into chunks of 4000 characters each.
+- Copy Functionality: Each chunk is accompanied by a copy button, allowing users to quickly copy the chunk's content to the clipboard.
+- Responsive Design: The application is designed to work seamlessly across various devices and screen sizes.
 
 ## Getting Started
 
