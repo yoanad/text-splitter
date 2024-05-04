@@ -1,5 +1,5 @@
 import React from 'react'
-import { TextSplitter } from '../components/TextSplitter'
+import { TextSplitter } from './components/TextSplitter'
 
 export default function Home() {
   return (
