@@ -10,13 +10,13 @@ Object.assign(navigator, {
 })
 
 describe('TextSplitter Component', () => {
-  test('renders text area and button', () => {
+  it('renders text area and button', () => {
     render(<TextSplitter />)
     expect(screen.getByRole('textbox')).toBeInTheDocument()
     expect(screen.getByText('Split Text')).toBeInTheDocument()
   })
 
-  test('splits text into chunks of specified size when button is clicked', async () => {
+  it('splits text into chunks of specified size when button is clicked with no removal option', async () => {
     const testText =
       'This is a longer test string that should be split into several smaller chunks based on the specified chunk size.'
     render(<TextSplitter />)
@@ -30,16 +30,115 @@ describe('TextSplitter Component', () => {
     fireEvent.change(textArea, { target: { value: testText } })
     fireEvent.click(splitButton)
 
-    const flattenedText = testText.replace(/\n/g, '')
-    const expectedChunks = Math.ceil(flattenedText.length / 50)
+    // Verify the chunks
+    const regex = new RegExp(`.{1,50}`, 'g')
+    const expectedChunks = testText.match(regex) || []
 
     await waitFor(() => {
       const chunks = screen.getAllByRole('textbox', {
         name: 'chunk',
-      }) as HTMLInputElement[]
-      expect(chunks.length).toBe(expectedChunks)
-      chunks.forEach((chunk) => {
-        expect(chunk.value.length).toBeLessThanOrEqual(50)
+      }) as HTMLTextAreaElement[]
+      expect(chunks.length).toBe(expectedChunks.length)
+      chunks.forEach((chunk, index) => {
+        expect(chunk.value).toBe(expectedChunks[index])
+      })
+    })
+  })
+
+  it('splits text into chunks of specified size when button is clicked with whitespace removal', async () => {
+    const testText =
+      'This is a longer test string that should be split into several smaller chunks based on the specified chunk size.'
+    render(<TextSplitter />)
+    const textArea = screen.getByRole('textbox')
+    const chunkSizeInput = screen.getByLabelText(
+      'Specify character count to split by:',
+    )
+    const removeWhitespace = screen.getByLabelText('Whitespace')
+    const splitButton = screen.getByText('Split Text')
+
+    fireEvent.change(chunkSizeInput, { target: { value: '50' } })
+    fireEvent.click(removeWhitespace)
+    fireEvent.change(textArea, { target: { value: testText } })
+    fireEvent.click(splitButton)
+
+    // Remove whitespace and verify the chunks
+    const flattenedText = testText.replace(/\s/g, '')
+    const regex = new RegExp(`.{1,50}`, 'g')
+    const expectedChunks = flattenedText.match(regex) || []
+
+    await waitFor(() => {
+      const chunks = screen.getAllByRole('textbox', {
+        name: 'chunk',
+      }) as HTMLTextAreaElement[]
+      expect(chunks.length).toBe(expectedChunks.length)
+      chunks.forEach((chunk, index) => {
+        expect(chunk.value).toBe(expectedChunks[index])
+      })
+    })
+  })
+
+  it('splits text into chunks of specified size when button is clicked with newline removal', async () => {
+    const testText =
+      'This is a longer test string\nthat should be split\ninto several smaller chunks\nbased on the specified chunk size.'
+    render(<TextSplitter />)
+    const textArea = screen.getByRole('textbox')
+    const chunkSizeInput = screen.getByLabelText(
+      'Specify character count to split by:',
+    )
+    const removeNewlines = screen.getByLabelText('Newlines')
+    const splitButton = screen.getByText('Split Text')
+
+    fireEvent.change(chunkSizeInput, { target: { value: '50' } })
+    fireEvent.click(removeNewlines)
+    fireEvent.change(textArea, { target: { value: testText } })
+    fireEvent.click(splitButton)
+
+    // Remove newlines and verify the chunks
+    const flattenedText = testText.replace(/\n/g, '')
+    const regex = new RegExp(`.{1,50}`, 'g')
+    const expectedChunks = flattenedText.match(regex) || []
+
+    await waitFor(() => {
+      const chunks = screen.getAllByRole('textbox', {
+        name: 'chunk',
+      }) as HTMLTextAreaElement[]
+      expect(chunks.length).toBe(expectedChunks.length)
+      chunks.forEach((chunk, index) => {
+        expect(chunk.value).toBe(expectedChunks[index])
+      })
+    })
+  })
+
+  it('splits text into chunks of specified size when button is clicked with both whitespace and newline removal', async () => {
+    const testText =
+      'This is a longer test string\nthat should be split\ninto several smaller chunks\nbased on the specified chunk size.'
+    render(<TextSplitter />)
+    const textArea = screen.getByRole('textbox')
+    const chunkSizeInput = screen.getByLabelText(
+      'Specify character count to split by:',
+    )
+    const removeWhitespace = screen.getByLabelText('Whitespace')
+    const removeNewlines = screen.getByLabelText('Newlines')
+    const splitButton = screen.getByText('Split Text')
+
+    fireEvent.change(chunkSizeInput, { target: { value: '50' } })
+    fireEvent.click(removeWhitespace)
+    fireEvent.click(removeNewlines)
+    fireEvent.change(textArea, { target: { value: testText } })
+    fireEvent.click(splitButton)
+
+    // Remove whitespace and newlines and verify the chunks
+    const flattenedText = testText.replace(/\s/g, '').replace(/\n/g, '')
+    const regex = new RegExp(`.{1,50}`, 'g')
+    const expectedChunks = flattenedText.match(regex) || []
+
+    await waitFor(() => {
+      const chunks = screen.getAllByRole('textbox', {
+        name: 'chunk',
+      }) as HTMLTextAreaElement[]
+      expect(chunks.length).toBe(expectedChunks.length)
+      chunks.forEach((chunk, index) => {
+        expect(chunk.value).toBe(expectedChunks[index])
       })
     })
   })
@@ -55,13 +154,15 @@ describe('TextSplitter Component', () => {
   })
 
   it('copies text to clipboard', async () => {
-    const testText = 'Sample text that will be split into chunks'
+    const testText = 'Sample text\nthat will be\nsplit into chunks'
     render(<TextSplitter />)
     const textArea = screen.getByRole('textbox')
     const splitButton = screen.getByText('Split Text')
     const chunkSizeInput = screen.getByLabelText(/character count to split by/i)
+    const removeNewlines = screen.getByLabelText('Newlines')
 
     fireEvent.change(chunkSizeInput, { target: { value: '50' } })
+    fireEvent.click(removeNewlines)
     fireEvent.change(textArea, { target: { value: testText } })
 
     await waitFor(() => {
@@ -74,9 +175,8 @@ describe('TextSplitter Component', () => {
       fireEvent.click(copyButtons[0])
     })
 
-    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-      (screen.getAllByRole('textbox', { name: '' })[0] as HTMLTextAreaElement)
-        .value,
-    )
+    const expectedText = testText.replace(/\n/g, '')
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expectedText)
   })
 })

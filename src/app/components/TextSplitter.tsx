@@ -7,6 +7,8 @@ export const TextSplitter: React.FC = () => {
   const [chunkSize, setChunkSize] = useState(4000)
   const [chunks, setChunks] = useState<string[]>([])
   const [copySuccess, setCopySuccess] = useState('')
+  const [removeWhitespace, setRemoveWhitespace] = useState(false)
+  const [removeNewlines, setRemoveNewlines] = useState(false)
 
   const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(event.target.value)
@@ -20,9 +22,15 @@ export const TextSplitter: React.FC = () => {
   }
 
   const splitText = () => {
-    const flattenedText = text.replace(/\n/g, '') // Remove newlines only
+    let modifiedText = text
+    if (removeWhitespace) {
+      modifiedText = modifiedText.replace(/\s/g, '')
+    }
+    if (removeNewlines) {
+      modifiedText = modifiedText.replace(/\n/g, '')
+    }
     const regex = new RegExp(`.{1,${chunkSize}}`, 'g')
-    const chunks = flattenedText.match(regex) || []
+    const chunks = modifiedText.match(regex) || []
     setChunks(chunks)
   }
 
@@ -39,6 +47,31 @@ export const TextSplitter: React.FC = () => {
           value={chunkSize}
           onChange={(e) => setChunkSize(parseInt(e.target.value))}
         />
+      </div>
+      <div className='mb-4'>
+        <label className='block mb-1'>Remove:</label>
+        <div>
+          <input
+            type='checkbox'
+            id='removeWhitespace'
+            checked={removeWhitespace}
+            onChange={(e) => setRemoveWhitespace(e.target.checked)}
+          />
+          <label htmlFor='removeWhitespace' className='ml-2'>
+            Whitespace
+          </label>
+        </div>
+        <div>
+          <input
+            type='checkbox'
+            id='removeNewlines'
+            checked={removeNewlines}
+            onChange={(e) => setRemoveNewlines(e.target.checked)}
+          />
+          <label htmlFor='removeNewlines' className='ml-2'>
+            Newlines
+          </label>
+        </div>
       </div>
       <textarea
         className='w-full sm:w-full h-60 p-2 border border-gray-300 text-black mb-4'
@@ -60,9 +93,9 @@ export const TextSplitter: React.FC = () => {
               </div>
               <textarea
                 className='w-full h-64 p-2 border border-gray-200 text-black bg-gray-50 mt-2'
-                aria-label='chunk'
                 value={chunk}
                 readOnly
+                aria-label='chunk'
               />
             </div>
             <button
