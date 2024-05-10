@@ -134,7 +134,7 @@ describe('TextSplitter Component', () => {
 
     await waitFor(() => {
       const chunks = screen.getAllByRole('textbox', {
-        name: 'chunk',
+        name: /chunk/,
       }) as HTMLTextAreaElement[]
       expect(chunks.length).toBe(expectedChunks.length)
       chunks.forEach((chunk, index) => {
@@ -178,5 +178,11 @@ describe('TextSplitter Component', () => {
     const expectedText = testText.replace(/\n/g, '')
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(expectedText)
+
+    // Verify that the copied state is updated
+    const chunks = screen.getAllByRole('textbox', {
+      name: 'chunk',
+    }) as HTMLTextAreaElement[]
+    expect(chunks[0].parentElement).toHaveClass('opacity-50')
   })
 })

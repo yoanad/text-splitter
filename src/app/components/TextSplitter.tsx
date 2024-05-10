@@ -6,6 +6,7 @@ export const TextSplitter: React.FC = () => {
   const [text, setText] = useState('')
   const [chunkSize, setChunkSize] = useState(4000)
   const [chunks, setChunks] = useState<string[]>([])
+  const [copiedChunks, setCopiedChunks] = useState<boolean[]>([])
   const [copySuccess, setCopySuccess] = useState('')
   const [removeWhitespace, setRemoveWhitespace] = useState(false)
   const [removeNewlines, setRemoveNewlines] = useState(false)
@@ -14,9 +15,12 @@ export const TextSplitter: React.FC = () => {
     setText(event.target.value)
   }
 
-  const handleCopy = (chunk: string) => {
+  const handleCopy = (chunk: string, index: number) => {
     navigator.clipboard.writeText(chunk).then(() => {
       setCopySuccess('Copied!')
+      const updatedCopiedChunks = [...copiedChunks]
+      updatedCopiedChunks[index] = true
+      setCopiedChunks(updatedCopiedChunks)
       setTimeout(() => setCopySuccess(''), 2000)
     })
   }
@@ -32,6 +36,7 @@ export const TextSplitter: React.FC = () => {
     const regex = new RegExp(`.{1,${chunkSize}}`, 'g')
     const chunks = modifiedText.match(regex) || []
     setChunks(chunks)
+    setCopiedChunks(new Array(chunks.length).fill(false))
   }
 
   return (
@@ -87,7 +92,9 @@ export const TextSplitter: React.FC = () => {
       <div className='mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8'>
         {chunks.map((chunk, index) => (
           <div key={index} className='relative'>
-            <div className='bg-white shadow-lg rounded-lg p-4 relative overflow-visible'>
+            <div
+              className={`bg-white shadow-lg rounded-lg p-4 relative overflow-visible ${copiedChunks[index] ? 'opacity-50' : ''}`}
+            >
               <div className='absolute left-0 top-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-500 text-white flex items-center justify-center w-10 h-10 rounded-full shadow text-lg font-semibold'>
                 #{index + 1}
               </div>
@@ -99,7 +106,7 @@ export const TextSplitter: React.FC = () => {
               />
             </div>
             <button
-              onClick={() => handleCopy(chunk)}
+              onClick={() => handleCopy(chunk, index)}
               className='absolute top-0 right-0 -mt-3 -mr-3 p-2 rounded-full hover:bg-gray-200 bg-white border border-gray-400'
             >
               <svg
