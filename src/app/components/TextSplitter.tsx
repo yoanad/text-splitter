@@ -20,8 +20,9 @@ export const TextSplitter: React.FC = () => {
   }
 
   const splitText = () => {
+    const flattenedText = text.replace(/\n/g, '') // Remove newlines only
     const regex = new RegExp(`.{1,${chunkSize}}`, 'g')
-    const chunks = text.match(regex) || []
+    const chunks = flattenedText.match(regex) || []
     setChunks(chunks)
   }
 
@@ -59,6 +60,7 @@ export const TextSplitter: React.FC = () => {
               </div>
               <textarea
                 className='w-full h-64 p-2 border border-gray-200 text-black bg-gray-50 mt-2'
+                aria-label='chunk'
                 value={chunk}
                 readOnly
               />
